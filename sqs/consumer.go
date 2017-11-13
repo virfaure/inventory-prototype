@@ -7,6 +7,7 @@ import (
 	"github.com/magento-mcom/inventory-prototype/util"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"log"
+	"time"
 )
 
 var sqsSession *sqs.SQS
@@ -62,6 +63,12 @@ func PollOneMessage(queueUrl string) *sqs.Message {
 }
 
 func PollMessages(queueUrl string) []*sqs.Message {
+	start := time.Now()
+	defer func() {
+		duration := time.Since(start)
+		log.Printf("Receiving 10 messages took %v", duration)
+	}()
+
 	svc := getSqsSession()
 
 	result, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
