@@ -1,0 +1,10 @@
+database:
+  engine: "mysql"
+  #dsn: "inventory:inventorypassword@tcp(prototype2-auroradb-inventory-cluster.cluster-cfqmpa26duku.us-west-2.rds.amazonaws.com:3306)/inventory"
+  dsn: "inventory:inventory@(127.0.0.1:3306)/inventory"
+
+consumer:
+  queue: "https://sqs.us-west-2.amazonaws.com/277100466574/prototype2-inventory-api-gateway-queue"
+  region: "us-west-2"
+  profile: "training"
+  attribute: "client"

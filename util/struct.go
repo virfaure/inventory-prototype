@@ -25,6 +25,7 @@ type SourceStockUpdate struct {
 
 type SourceStockSnapshot struct {
 	CreatedOn string `json:"created_on"`
+	Reason string `json:"reason"`
 	Mode string `json:"mode"`
 	SourceId string `json:"source_id"`
 	Stock []Stock `json:"stock"`
@@ -35,4 +36,19 @@ type Stock struct {
 	Quantity int `json:"quantity"`
 	Sku string `json:"sku"`
 	UnlimitedStock int `json:"unlimited_stock"`
+}
+
+type StockMovement struct {
+	Sku string
+	Quantity int
+	Type string
+	Client string
+	Source string
+	Date string
+	Reason string
+}
+
+type MessageAttributeValue struct {
+	DataType    string `json:"DataType"`
+	StringValue string `json:"StringValue"`
 }
