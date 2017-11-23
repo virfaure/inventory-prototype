@@ -9,6 +9,10 @@ import (
 	"encoding/json"
 	"github.com/magento-mcom/inventory-prototype/util"
 	"github.com/magento-mcom/inventory-prototype/configuration"
+	"fmt"
+	"bytes"
+	"text/template"
+	"io/ioutil"
 )
 
 var sqsSession *sqs.SQS
@@ -40,11 +44,11 @@ func (consumer *sqsConsumer) getSqsSession() (*sqs.SQS) {
 	return sqsSession
 }
 
-func (consumer *sqsConsumer) PollMessages() []util.StockMovement {
+func (consumer *sqsConsumer) PollStockMessages() []util.StockMovement {
 	svc := consumer.getSqsSession()
 
 	result, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
-		QueueUrl:              &consumer.config.Consumer.Queue,
+		QueueUrl:              &consumer.config.Consumer.Queuestock,
 		MessageAttributeNames: aws.StringSlice([]string{"client"}),
 		MaxNumberOfMessages:   aws.Int64(10),
 		VisibilityTimeout:     aws.Int64(36000), // 10 hours
@@ -112,9 +116,51 @@ func (consumer *sqsConsumer) PollMessages() []util.StockMovement {
 	return buffer
 }
 
+func (consumer *sqsConsumer) SendReindexRequests(stockMovements []util.StockMovement) {
+	svc := consumer.getSqsSession()
+
+	var file = "template/reindex-request.json"
+	body, err := ioutil.ReadFile(file)
+
+	if err != nil {
+		log.Printf("Cannot read %s /n", file)
+	}
+
+	for _, stockMovement := range stockMovements {
+		reindexRequest := map[string]interface{}{
+			"Source": stockMovement.Source,
+			"Sku":    stockMovement.Sku,
+			"Client": stockMovement.Client,
+		}
+
+		tmpl, err := template.New("reindex-request").Parse(string(body))
+
+		if err != nil {
+			panic(err)
+		}
+
+		buffer := bytes.NewBuffer(nil)
+		err = tmpl.Execute(buffer, reindexRequest)
+
+		params := &sqs.SendMessageInput{
+			MessageBody:  aws.String(buffer.String()),
+			QueueUrl:     aws.String(consumer.config.Consumer.Queuereindex),
+			DelaySeconds: aws.Int64(3),
+		}
+
+		_, err = svc.SendMessage(params)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Printf("Reindex Request for source %s, sku %s and client %s sent \n", stockMovement.Source, stockMovement.Sku, stockMovement.Client)
+	}
+}
+
 func (consumer *sqsConsumer) deleteMessage(svc *sqs.SQS, message *sqs.Message) {
 	resultDelete := &sqs.DeleteMessageInput{
-		QueueUrl:      &consumer.config.Consumer.Queue,
+		QueueUrl:      &consumer.config.Consumer.Queuestock,
 		ReceiptHandle: message.ReceiptHandle,
 	}
 	_, err := svc.DeleteMessage(resultDelete)

@@ -1,0 +1,11 @@
+database:
+  engine: "mysql"
+  dsn: "inventory:inventory@(127.0.0.1:3306)/inventory"
+
+consumer:
+  queuestock: "sqs_queue_stock"
+  queuereindex: "sqs_queue_reindex"
+  region: "region"
+  profile: "profile"
+  attribute: "client"
+

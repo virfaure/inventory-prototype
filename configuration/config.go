@@ -11,10 +11,11 @@ type Config struct {
 		Engine 	string
 	}
 	Consumer struct {
-		Queue 	 string
-		Region   string
-		Profile  string
-		Attribute  string
+		Queuestock 	 	string
+		Queuereindex 	string
+		Region   		string
+		Profile  		string
+		Attribute  		string
 	}
 }
 

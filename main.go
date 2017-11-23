@@ -30,7 +30,7 @@ func main() {
 
 			go func() {
 				defer wg.Done()
-				messages = l.Consumer().PollMessages()
+				messages = l.Consumer().PollStockMessages()
 			}()
 		}
 
@@ -41,6 +41,7 @@ func main() {
 			go func() {
 				defer wg.Done()
 				l.Repository().InsertStock(messages)
+				l.Consumer().SendReindexRequests(messages)
 			}()
 		}
 

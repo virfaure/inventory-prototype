@@ -5,5 +5,6 @@ import (
 )
 
 type Consumer interface {
-	PollMessages() []util.StockMovement
+	PollStockMessages() []util.StockMovement
+	SendReindexRequests([]util.StockMovement)
 }
